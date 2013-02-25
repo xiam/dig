@@ -104,7 +104,7 @@ func String(src interface{}, route ...interface{}) string {
 /*
 	Returns the element of the Slice or Map given by route.
 */
-func pick(src interface{}, route ...interface{}) (*reflect.Value, error) {
+func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, error) {
 	var err error = nil
 
 	v := reflect.ValueOf(src)
@@ -116,6 +116,7 @@ func pick(src interface{}, route ...interface{}) (*reflect.Value, error) {
 	v = v.Elem()
 
 	for _, key := range route {
+		u := v
 		switch v.Kind() {
 		case reflect.Slice:
 			switch i := key.(type) {
@@ -127,7 +128,12 @@ func pick(src interface{}, route ...interface{}) (*reflect.Value, error) {
 				}
 			}
 		case reflect.Map:
-			v = v.MapIndex(reflect.ValueOf(key))
+			vkey := reflect.ValueOf(key)
+			v = v.MapIndex(vkey)
+			if dig == true && v.IsValid() == false {
+				u.SetMapIndex(vkey, reflect.MakeMap(u.Type()))
+				v = u.MapIndex(vkey)
+			}
 			if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
 				v = v.Elem()
 			}
@@ -156,7 +162,7 @@ func Set(src interface{}, val interface{}, route ...interface{}) error {
 	parent := route[0 : l-1]
 	last := route[l-1 : l]
 
-	p, err := pick(src, parent...)
+	p, err := pick(src, false, parent...)
 
 	if err != nil {
 		return err
@@ -197,7 +203,7 @@ func Get(src interface{}, dst interface{}, route ...interface{}) error {
 	// Setting to zero before setting it again.
 	dv.Elem().Set(reflect.Zero(dv.Elem().Type()))
 
-	p, err := pick(src, route...)
+	p, err := pick(src, false, route...)
 
 	if err != nil {
 		return err
@@ -221,11 +227,23 @@ func Get(src interface{}, dst interface{}, route ...interface{}) error {
 		}
 	}
 
-	if dv.Elem().Type() == p.Type() {
+	if dv.Elem().Type() == p.Type() || dv.Elem().Kind() == reflect.Interface {
 		dv.Elem().Set(*p)
 	} else {
 		return fmt.Errorf("Could not assign %s to %s.", p.Type(), dv.Elem().Type())
 	}
 
 	return nil
+}
+
+/*
+	Makes a path to the given route, if the route already exists it overwrites it
+	with a zero value.
+*/
+func Dig(src interface{}, route ...interface{}) error {
+	v, err := pick(src, true, route...)
+	if v.IsValid() == false {
+		return fmt.Errorf("Could not reach node.")
+	}
+	return err
 }

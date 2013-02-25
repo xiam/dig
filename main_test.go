@@ -431,3 +431,18 @@ func TestSetSimpleMap(t *testing.T) {
 	}
 
 }
+
+func TestDig(t *testing.T) {
+	var i int
+
+	m := map[string]interface{}{}
+
+	Dig(&m, "foo", "bar", "baz")
+	Set(&m, 42, "foo", "bar", "baz")
+	Get(&m, &i, "foo", "bar", "baz")
+
+	if i != 42 {
+		t.Errorf("Test failed.")
+	}
+
+}
