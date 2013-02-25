@@ -99,7 +99,7 @@ func TestList(t *testing.T) {
 	}
 	var i int
 
-	err = Pick(&list, &i, 5)
+	err = Get(&list, &i, 5)
 
 	if err != nil {
 		t.Errorf("Test failed")
@@ -120,7 +120,7 @@ func TestMatrix(t *testing.T) {
 	}
 	var i int
 
-	err = Pick(&m33, &i, 1, 1)
+	err = Get(&m33, &i, 1, 1)
 
 	if err != nil {
 		t.Errorf("Test failed")
@@ -130,7 +130,7 @@ func TestMatrix(t *testing.T) {
 		t.Errorf("Test failed")
 	}
 
-	err = Pick(&m33, &i, 2, 0)
+	err = Get(&m33, &i, 2, 0)
 
 	if err != nil {
 		t.Errorf("Test failed")
@@ -140,7 +140,7 @@ func TestMatrix(t *testing.T) {
 		t.Errorf("Test failed")
 	}
 
-	err = Pick(&m33, &i, 9, 9)
+	err = Get(&m33, &i, 9, 9)
 
 	if i != 0 {
 		t.Errorf("Test failed")
@@ -151,7 +151,7 @@ func TestMatrix(t *testing.T) {
 	}
 
 	// Non assignable
-	err = Pick(&m33, &i, 1)
+	err = Get(&m33, &i, 1)
 
 	if i != 0 {
 		t.Errorf("Test failed")
@@ -172,7 +172,7 @@ func TestFloatMatrix(t *testing.T) {
 	}
 	var f float64
 
-	err = Pick(&mf33, &f, 1, 2)
+	err = Get(&mf33, &f, 1, 2)
 
 	if err != nil {
 		t.Errorf("Test failed")
@@ -194,7 +194,7 @@ func TestMap(t *testing.T) {
 	var s string
 
 	// Simple assignment
-	err = Pick(&m, &s, "Hello")
+	err = Get(&m, &s, "Hello")
 
 	if err != nil {
 		t.Errorf("Test failed")
@@ -222,7 +222,7 @@ func TestMap(t *testing.T) {
 	}
 
 	// Nested keys
-	err = Pick(&m2, &s, "second", "second.2", "col.4")
+	err = Get(&m2, &s, "second", "second.2", "col.4")
 
 	if err != nil {
 		t.Errorf("Test failed")
@@ -233,7 +233,7 @@ func TestMap(t *testing.T) {
 	}
 
 	// Non existent key
-	err = Pick(&m2, &s, "third", "doest", "not", "exists")
+	err = Get(&m2, &s, "third", "doest", "not", "exists")
 
 	if err == nil {
 		t.Errorf("Test failed")
@@ -244,7 +244,7 @@ func TestMap(t *testing.T) {
 	}
 
 	// Non assignable key
-	err = Pick(&m2, &s, "second")
+	err = Get(&m2, &s, "second")
 
 	if err == nil {
 		t.Errorf("Test failed")
@@ -263,48 +263,48 @@ func TestJSON(t *testing.T) {
 	json.Unmarshal([]byte(jsonTest), &m)
 
 	var s string
-	Pick(&m, &s, "PMap", "17", "Tag")
+	Get(&m, &s, "PMap", "17", "Tag")
 
 	if s != "tag17" {
 		t.Errorf("Test failed.")
 	}
 
 	var f32 float32
-	Pick(&m, &f32, "PFloat32")
+	Get(&m, &f32, "PFloat32")
 
 	if f32 != float32(14.1) {
 		t.Errorf("Test failed.")
 	}
 
 	var f64 float64
-	Pick(&m, &f64, "PFloat32")
+	Get(&m, &f64, "PFloat32")
 
 	if f64 != float64(14.1) {
 		t.Errorf("Test failed.")
 	}
 
 	var b bool
-	Pick(&m, &b, "PBool")
+	Get(&m, &b, "PBool")
 
 	if b != true {
 		t.Errorf("Test failed.")
 	}
 
 	var ui64 uint64
-	Pick(&m, &ui64, "PUint64")
+	Get(&m, &ui64, "PUint64")
 
 	if ui64 != uint64(11) {
 		t.Errorf("Test failed.")
 	}
 
 	var i int
-	Pick(&m, &ui64, "String")
+	Get(&m, &ui64, "String")
 
 	if i != 0 {
 		t.Errorf("Test failed.")
 	}
 
-	Pick(&m, &s, "PSlice", 1, "Tag")
+	Get(&m, &s, "PSlice", 1, "Tag")
 
 	if s != "tag21" {
 		t.Errorf("Test failed.")
@@ -324,6 +324,110 @@ func TestJSON2(t *testing.T) {
 
 	if foo["test"] != "tag17" {
 		t.Errorf("Test failed.")
+	}
+
+}
+
+func TestSet(t *testing.T) {
+
+	var m = map[string]interface{}{
+		"path": map[string]interface{}{
+			"to": map[string]interface{}{
+				"variable": 2,
+			},
+		},
+	}
+
+	var i int
+
+	err := Set(&m, 1, "path", "to", "variable")
+
+	if err != nil {
+		t.Errorf("ER: %v\n", err.Error())
+	}
+
+	Get(&m, &i, "path", "to", "variable")
+
+	if i != 1 {
+		t.Errorf("Test failed.")
+	}
+
+	err = Set(&m, 42, "path", "to", "non", "existent", "key")
+
+	if err == nil {
+		t.Errorf("Expecting an error.")
+	}
+
+}
+
+func TestSetN(t *testing.T) {
+
+	var m = map[string]map[string]map[string]int{
+		"path": map[string]map[string]int{
+			"to": map[string]int{
+				"variable": 2,
+			},
+		},
+	}
+
+	var i int
+
+	err := Set(&m, 42, "path", "to", "variable")
+
+	if err != nil {
+		t.Errorf("ER: %v\n", err.Error())
+	}
+
+	Get(&m, &i, "path", "to", "variable")
+
+	if i != 42 {
+		t.Errorf("Test failed.")
+	}
+
+}
+
+func TestSetSimpleMap(t *testing.T) {
+
+	var m = map[string]int{
+		"key": 2,
+	}
+
+	var i int
+
+	err := Set(&m, 42, "key")
+
+	if err != nil {
+		t.Errorf("ER: %v\n", err.Error())
+	}
+
+	Get(&m, &i, "key")
+
+	if i != 42 {
+		t.Errorf("Test failed.")
+	}
+
+	err = Set(&m, 43, "does", "not-exists")
+
+	if err == nil {
+		t.Errorf("Expecting an error.")
+	}
+
+	err = Set(&m, 44, "new-key")
+
+	if err != nil {
+		t.Errorf("Test failed.")
+	}
+
+	Get(&m, &i, "new-key")
+
+	if i != 44 {
+		t.Errorf("Test failed.")
+	}
+
+	err = Set(&m, 44)
+
+	if err == nil {
+		t.Errorf("Expecting an error.")
 	}
 
 }
