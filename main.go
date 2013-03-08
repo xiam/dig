@@ -90,6 +90,18 @@ func Float64(src interface{}, route ...interface{}) float64 {
 }
 
 /*
+	Returns an interface{} starting from a Slice or Map.
+*/
+func Interface(src interface{}, route ...interface{}) interface{} {
+	var i interface{}
+	err := Get(src, &i, route...)
+	if err != nil {
+		return nil
+	}
+	return i
+}
+
+/*
 	Returns a string starting from a Slice or Map.
 */
 func String(src interface{}, route ...interface{}) string {
