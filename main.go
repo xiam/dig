@@ -161,8 +161,8 @@ func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, erro
 }
 
 /*
-	Starts with src (pointer to Slice or Map) and follows the given route, if the
-	route is met, tries to set the node with the value given by val.
+	Starts with src (pointer to Slice or Map) tries to follow the given route, if
+	the route is found it then tries to set the node with the given value (val).
 */
 func Set(src interface{}, val interface{}, route ...interface{}) error {
 	l := len(route)
@@ -190,9 +190,9 @@ func Set(src interface{}, val interface{}, route ...interface{}) error {
 }
 
 /*
-	Starts with src (pointer to Slice or Map) and follows the given route, if the
-	route is met, tries to copy or convert the found node into the value pointed
-	by dst.
+	Starts with src (pointer to Slice or Map) tries to follow the given route,
+	if the route is found it then tries to copy or convert the found node into
+	the value pointed by dst.
 */
 func Get(src interface{}, dst interface{}, route ...interface{}) error {
 

@@ -184,6 +184,124 @@ func TestFloatMatrix(t *testing.T) {
 
 }
 
+func TestReddit(t *testing.T) {
+	var s = `
+{
+   "kind":"Listing",
+   "data":{
+      "modhash":"",
+      "children":[
+         {
+            "kind":"t3",
+            "data":{
+               "domain":"github.com",
+               "banned_by":null,
+               "media_embed":{
+
+               },
+               "subreddit":"golang",
+               "selftext_html":null,
+               "selftext":"",
+               "likes":null,
+               "link_flair_text":null,
+               "id":"1bep1x",
+               "clicked":false,
+               "title":"Easy GOPATH management for Go(lang) projects",
+               "media":null,
+               "score":9,
+               "approved_by":null,
+               "over_18":false,
+               "hidden":false,
+               "thumbnail":"",
+               "subreddit_id":"t5_2rc7j",
+               "edited":false,
+               "link_flair_css_class":null,
+               "author_flair_css_class":null,
+               "downs":4,
+               "saved":false,
+               "is_self":false,
+               "permalink":"/r/golang/comments/1bep1x/easy_gopath_management_for_golang_projects/",
+               "name":"t3_1bep1x",
+               "created":1364825519.0,
+               "url":"https://github.com/divoxx/goproj",
+               "author_flair_text":null,
+               "author":"divoxx",
+               "created_utc":1364796719.0,
+               "ups":13,
+               "num_comments":17,
+               "num_reports":null,
+               "distinguished":null
+            }
+         },
+         {
+            "kind":"t3",
+            "data":{
+               "domain":"xaprb.com",
+               "banned_by":null,
+               "media_embed":{
+
+               },
+               "subreddit":"golang",
+               "selftext_html":null,
+               "selftext":"",
+               "likes":null,
+               "link_flair_text":null,
+               "id":"1anxb9",
+               "clicked":false,
+               "title":"Building MySQL Database Applications with Go",
+               "media":null,
+               "score":18,
+               "approved_by":null,
+               "over_18":false,
+               "hidden":false,
+               "thumbnail":"",
+               "subreddit_id":"t5_2rc7j",
+               "edited":false,
+               "link_flair_css_class":null,
+               "author_flair_css_class":null,
+               "downs":3,
+               "saved":false,
+               "is_self":false,
+               "permalink":"/r/golang/comments/1anxb9/building_mysql_database_applications_with_go/",
+               "name":"t3_1anxb9",
+               "created":1363819085.0,
+               "url":"http://www.xaprb.com/blog/2013/03/20/building-mysql-database-applications-with-go/",
+               "author_flair_text":null,
+               "author":"franciscosouza",
+               "created_utc":1363790285.0,
+               "ups":21,
+               "num_comments":6,
+               "num_reports":null,
+               "distinguished":null
+            }
+         }
+      ],
+      "after":"t3_1aewpb",
+      "before":null
+   }
+}
+	`
+	var m map[string]interface{}
+	json.Unmarshal([]byte(s), &m)
+
+	var children []interface{}
+
+	err := Get(&m, &children, "data", "children")
+
+	if err != nil {
+		t.Fatalf("Error: %s", err.Error())
+	}
+
+	for i, _ := range children {
+		child := children[i].(map[string]interface{})
+		val := Float64(&child, "data", "created")
+		if val == 0.0 {
+			t.Fatalf("Failed conversion or traversal.")
+		}
+	}
+
+}
+
 func TestMap(t *testing.T) {
 	var err error
 
@@ -234,17 +352,6 @@ func TestMap(t *testing.T) {
 
 	// Non existent key
 	err = Get(&m2, &s, "third", "doest", "not", "exists")
-
-	if err == nil {
-		t.Errorf("Test failed")
-	}
-
-	if s != "" {
-		t.Errorf("Test failed")
-	}
-
-	// Non assignable key
-	err = Get(&m2, &s, "second")
 
 	if err == nil {
 		t.Errorf("Test failed")
