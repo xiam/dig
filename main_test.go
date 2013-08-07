@@ -1,555 +1,261 @@
+/*
+  Copyright (c) 2013 José Carlos Nieto, http://xiam.menteslibres.org/
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 package dig
 
 import (
-	"encoding/json"
-	"testing"
+	"fmt"
+	"menteslibres.net/gosexy/to"
+	"reflect"
 )
 
-var jsonTest = `{
-	"Bool": false,
-	"Int": 0,
-	"Int8": 0,
-	"Int16": 0,
-	"Int32": 0,
-	"Int64": 0,
-	"Uint": 0,
-	"Uint8": 0,
-	"Uint16": 0,
-	"Uint32": 0,
-	"Uint64": 0,
-	"Uintptr": 0,
-	"Float32": 0,
-	"Float64": 0,
-	"bar": "",
-	"bar2": "",
-				"IntStr": "0",
-	"PBool": true,
-	"PInt": 2,
-	"PInt8": 3,
-	"PInt16": 4,
-	"PInt32": 5,
-	"PInt64": 6,
-	"PUint": 7,
-	"PUint8": 8,
-	"PUint16": 9,
-	"PUint32": 10,
-	"PUint64": 11,
-	"PUintptr": 12,
-	"PFloat32": 14.1,
-	"PFloat64": 15.1,
-	"String": "",
-	"PString": "16",
-	"Map": null,
-	"MapP": null,
-	"PMap": {
-		"17": {
-			"Tag": "tag17"
-		},
-		"18": {
-			"Tag": "tag18"
-		}
-	},
-	"PMapP": {
-		"19": {
-			"Tag": "tag19"
-		},
-		"20": null
-	},
-	"EmptyMap": null,
-	"NilMap": null,
-	"Slice": null,
-	"SliceP": null,
-	"PSlice": [
-		{
-			"Tag": "tag20"
-		},
-		{
-			"Tag": "tag21"
-		}
-	],
-	"PSliceP": [
-		{
-			"Tag": "tag22"
-		},
-		null,
-		{
-			"Tag": "tag23"
-		}
-	],
-	"EmptySlice": null,
-	"NilSlice": null,
-	"StringSlice": null,
-	"ByteSlice": null,
-	"Small": {
-		"Tag": ""
-	},
-	"PSmall": null,
-	"PPSmall": {
-		"Tag": "tag31"
-	},
-	"Interface": null,
-	"PInterface": 5.2
-}`
-
-func TestList(t *testing.T) {
-	var err error
-
-	list := []int{
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-	}
-	var i int
-
-	err = Get(&list, &i, 5)
-
-	if err != nil {
-		t.Errorf("Test failed")
-	}
-
-	if i != 5 {
-		t.Errorf("Test failed")
-	}
-}
-
-func TestMatrix(t *testing.T) {
-	var err error
-
-	m33 := [][]int{
-		[]int{0, 1, 2},
-		[]int{3, 4, 5},
-		[]int{6, 7, 8},
-	}
-	var i int
-
-	err = Get(&m33, &i, 1, 1)
-
-	if err != nil {
-		t.Errorf("Test failed")
-	}
-
-	if i != 4 {
-		t.Errorf("Test failed")
-	}
-
-	err = Get(&m33, &i, 2, 0)
-
-	if err != nil {
-		t.Errorf("Test failed")
-	}
-
-	if i != 6 {
-		t.Errorf("Test failed")
-	}
-
-	err = Get(&m33, &i, 9, 9)
-
-	if i != 0 {
-		t.Errorf("Test failed")
-	}
-
-	if err == nil {
-		t.Errorf("Test failed")
-	}
-
-	// Non assignable
-	err = Get(&m33, &i, 1)
-
-	if i != 0 {
-		t.Errorf("Test failed")
-	}
-
-	if err == nil {
-		t.Errorf("Test failed")
-	}
-}
-
-func TestFloatMatrix(t *testing.T) {
-	var err error
-
-	mf33 := [][]float64{
-		[]float64{0.0, 1.0, 2.0},
-		[]float64{3.0, 4.0, 5.0},
-		[]float64{6.0, 7.0, 8.0},
-	}
-	var f float64
-
-	err = Get(&mf33, &f, 1, 2)
-
-	if err != nil {
-		t.Errorf("Test failed")
-	}
-
-	if f != 5.0 {
-		t.Errorf("Test failed")
-	}
-
-}
-
-func TestReddit(t *testing.T) {
-	var s = `
-{
-   "kind":"Listing",
-   "data":{
-      "modhash":"",
-      "children":[
-         {
-            "kind":"t3",
-            "data":{
-               "domain":"github.com",
-               "banned_by":null,
-               "media_embed":{
-
-               },
-               "subreddit":"golang",
-               "selftext_html":null,
-               "selftext":"",
-               "likes":null,
-               "link_flair_text":null,
-               "id":"1bep1x",
-               "clicked":false,
-               "title":"Easy GOPATH management for Go(lang) projects",
-               "media":null,
-               "score":9,
-               "approved_by":null,
-               "over_18":false,
-               "hidden":false,
-               "thumbnail":"",
-               "subreddit_id":"t5_2rc7j",
-               "edited":false,
-               "link_flair_css_class":null,
-               "author_flair_css_class":null,
-               "downs":4,
-               "saved":false,
-               "is_self":false,
-               "permalink":"/r/golang/comments/1bep1x/easy_gopath_management_for_golang_projects/",
-               "name":"t3_1bep1x",
-               "created":1364825519.0,
-               "url":"https://github.com/divoxx/goproj",
-               "author_flair_text":null,
-               "author":"divoxx",
-               "created_utc":1364796719.0,
-               "ups":13,
-               "num_comments":17,
-               "num_reports":null,
-               "distinguished":null
-            }
-         },
-         {
-            "kind":"t3",
-            "data":{
-               "domain":"xaprb.com",
-               "banned_by":null,
-               "media_embed":{
-
-               },
-               "subreddit":"golang",
-               "selftext_html":null,
-               "selftext":"",
-               "likes":null,
-               "link_flair_text":null,
-               "id":"1anxb9",
-               "clicked":false,
-               "title":"Building MySQL Database Applications with Go",
-               "media":null,
-               "score":18,
-               "approved_by":null,
-               "over_18":false,
-               "hidden":false,
-               "thumbnail":"",
-               "subreddit_id":"t5_2rc7j",
-               "edited":false,
-               "link_flair_css_class":null,
-               "author_flair_css_class":null,
-               "downs":3,
-               "saved":false,
-               "is_self":false,
-               "permalink":"/r/golang/comments/1anxb9/building_mysql_database_applications_with_go/",
-               "name":"t3_1anxb9",
-               "created":1363819085.0,
-               "url":"http://www.xaprb.com/blog/2013/03/20/building-mysql-database-applications-with-go/",
-               "author_flair_text":null,
-               "author":"franciscosouza",
-               "created_utc":1363790285.0,
-               "ups":21,
-               "num_comments":6,
-               "num_reports":null,
-               "distinguished":null
-            }
-         }
-      ],
-      "after":"t3_1aewpb",
-      "before":null
-   }
-}
-	`
-	var m map[string]interface{}
-	json.Unmarshal([]byte(s), &m)
-
-	var children []interface{}
-
-	err := Get(&m, &children, "data", "children")
-
-	if err != nil {
-		t.Fatalf("Error: %s", err.Error())
-	}
-
-	for i, _ := range children {
-		child := children[i].(map[string]interface{})
-		val := Float64(&child, "data", "created")
-		if val == 0.0 {
-			t.Fatalf("Failed conversion or traversal.")
-		}
-	}
-
-}
-
-func TestMap(t *testing.T) {
-	var err error
-
-	m := map[string]string{
-		"Hello": "World",
-	}
-
-	var s string
-
-	// Simple assignment
-	err = Get(&m, &s, "Hello")
-
-	if err != nil {
-		t.Errorf("Test failed")
-	}
-
-	if s != "World" {
-		t.Errorf("Test failed")
-	}
-
-	m2 := map[string]map[string]map[string]string{
-		"first": map[string]map[string]string{
-			"first.1": map[string]string{
-				"col.1": "a",
-				"col.2": "b",
-				"col.3": "c",
-			},
-		},
-		"second": map[string]map[string]string{
-			"second.2": map[string]string{
-				"col.4": "d",
-				"col.5": "e",
-				"col.6": "f",
-			},
-		},
-	}
-
-	// Nested keys
-	err = Get(&m2, &s, "second", "second.2", "col.4")
-
-	if err != nil {
-		t.Errorf("Test failed")
-	}
-
-	if s != "d" {
-		t.Errorf("Test failed")
-	}
-
-	// Non existent key
-	err = Get(&m2, &s, "third", "doest", "not", "exists")
-
-	if err == nil {
-		t.Errorf("Test failed")
-	}
-
-	if s != "" {
-		t.Errorf("Test failed")
-	}
-
-}
-
-func TestJSON(t *testing.T) {
-
-	var m map[string]interface{}
-
-	json.Unmarshal([]byte(jsonTest), &m)
-
-	var s string
-	Get(&m, &s, "PMap", "17", "Tag")
-
-	if s != "tag17" {
-		t.Errorf("Test failed.")
-	}
-
-	var f32 float32
-	Get(&m, &f32, "PFloat32")
-
-	if f32 != float32(14.1) {
-		t.Errorf("Test failed.")
-	}
-
-	var f64 float64
-	Get(&m, &f64, "PFloat32")
-
-	if f64 != float64(14.1) {
-		t.Errorf("Test failed.")
-	}
-
+/*
+	Returns a boolean starting from a Slice or Map.
+*/
+func Bool(src interface{}, route ...interface{}) bool {
 	var b bool
-	Get(&m, &b, "PBool")
-
-	if b != true {
-		t.Errorf("Test failed.")
+	err := Get(src, &b, route...)
+	if err != nil {
+		return false
 	}
-
-	var ui64 uint64
-	Get(&m, &ui64, "PUint64")
-
-	if ui64 != uint64(11) {
-		t.Errorf("Test failed.")
-	}
-
-	var i int
-	Get(&m, &ui64, "String")
-
-	if i != 0 {
-		t.Errorf("Test failed.")
-	}
-
-	Get(&m, &s, "PSlice", 1, "Tag")
-
-	if s != "tag21" {
-		t.Errorf("Test failed.")
-	}
-
+	return b
 }
 
-func TestJSON2(t *testing.T) {
-
-	var m map[string]interface{}
-
-	json.Unmarshal([]byte(jsonTest), &m)
-
-	foo := map[string]string{
-		"test": String(&m, "PMap", "17", "Tag"),
+/*
+	Returns an uint64 starting from a Slice or Map.
+*/
+func Uint64(src interface{}, route ...interface{}) uint64 {
+	var i uint64
+	err := Get(src, &i, route...)
+	if err != nil {
+		return uint64(0)
 	}
-
-	if foo["test"] != "tag17" {
-		t.Errorf("Test failed.")
-	}
-
+	return i
 }
 
-func TestSet(t *testing.T) {
+/*
+	Returns an int64 starting from a Slice or Map.
+*/
+func Int64(src interface{}, route ...interface{}) int64 {
+	var i int64
+	err := Get(src, &i, route...)
+	if err != nil {
+		return int64(0)
+	}
+	return i
+}
 
-	var m = map[string]interface{}{
-		"path": map[string]interface{}{
-			"to": map[string]interface{}{
-				"variable": 2,
-			},
-		},
+/*
+	Returns a float32 starting from a Slice or Map.
+*/
+func Float32(src interface{}, route ...interface{}) float32 {
+	var f float32
+	err := Get(src, &f, route...)
+	if err != nil {
+		return float32(0)
+	}
+	return f
+}
+
+/*
+	Returns a float64 starting from a Slice or Map.
+*/
+func Float64(src interface{}, route ...interface{}) float64 {
+	var f float64
+	err := Get(src, &f, route...)
+	if err != nil {
+		return float64(0)
+	}
+	return f
+}
+
+/*
+	Returns an interface{} starting from a Slice or Map.
+*/
+func Interface(src interface{}, route ...interface{}) interface{} {
+	var i interface{}
+	err := Get(src, &i, route...)
+	if err != nil {
+		return nil
+	}
+	return i
+}
+
+/*
+	Returns a string starting from a Slice or Map.
+*/
+func String(src interface{}, route ...interface{}) string {
+	var s string
+	err := Get(src, &s, route...)
+	if err != nil {
+		return ""
+	}
+	return s
+}
+
+/*
+	Returns the element of the Slice or Map given by route.
+*/
+func pick(src interface{}, dig bool, route ...interface{}) (*reflect.Value, error) {
+	var err error = nil
+
+	v := reflect.ValueOf(src)
+
+	if v.Kind() != reflect.Ptr || v.IsNil() {
+		return nil, fmt.Errorf("Source is not a pointer.")
 	}
 
-	var i int
+	v = v.Elem()
 
-	err := Set(&m, 1, "path", "to", "variable")
+	for _, key := range route {
+		u := v
+		switch v.Kind() {
+		case reflect.Slice:
+			switch i := key.(type) {
+			case int:
+				if i < v.Len() {
+					v = v.Index(i)
+				} else {
+					return nil, fmt.Errorf("Undefined index: %d.", i)
+				}
+			}
+		case reflect.Map:
+			vkey := reflect.ValueOf(key)
+			v = v.MapIndex(vkey)
+			if dig == true && v.IsValid() == false {
+				u.SetMapIndex(vkey, reflect.MakeMap(u.Type()))
+				v = u.MapIndex(vkey)
+			}
+			if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+				v = v.Elem()
+			}
+		}
+		if v.IsValid() == true {
+			if v.CanInterface() == true {
+				v = reflect.ValueOf(v.Interface())
+			}
+		}
+	}
+
+	return &v, err
+}
+
+/*
+	Starts with src (pointer to Slice or Map) tries to follow the given route, if
+	the route is found it then tries to set the node with the given value (val).
+*/
+func Set(src interface{}, val interface{}, route ...interface{}) error {
+	l := len(route)
+
+	if l < 1 {
+		return fmt.Errorf("Missing route.")
+	}
+
+	parent := route[0 : l-1]
+	last := route[l-1 : l]
+
+	p, err := pick(src, false, parent...)
 
 	if err != nil {
-		t.Errorf("ER: %v\n", err.Error())
+		return err
 	}
 
-	Get(&m, &i, "path", "to", "variable")
-
-	if i != 1 {
-		t.Errorf("Test failed.")
+	if p.IsValid() == false {
+		return fmt.Errorf("Given route does not exists.")
 	}
 
-	err = Set(&m, 42, "path", "to", "non", "existent", "key")
+	p.SetMapIndex(reflect.ValueOf(last[0]), reflect.ValueOf(val))
 
-	if err == nil {
-		t.Errorf("Expecting an error.")
-	}
-
+	return nil
 }
 
-func TestSetN(t *testing.T) {
+/*
+	Starts with src (pointer to Slice or Map) tries to follow the given route,
+	if the route is found it then tries to copy or convert the found node into
+	the value pointed by dst.
+*/
+func Get(src interface{}, dst interface{}, route ...interface{}) error {
 
-	var m = map[string]map[string]map[string]int{
-		"path": map[string]map[string]int{
-			"to": map[string]int{
-				"variable": 2,
-			},
-		},
+	if len(route) < 1 {
+		return fmt.Errorf("Missing route.")
 	}
 
-	var i int
+	dv := reflect.ValueOf(dst)
 
-	err := Set(&m, 42, "path", "to", "variable")
+	if dv.Kind() != reflect.Ptr || dv.IsNil() {
+		return fmt.Errorf("Destination is not a pointer.")
+	}
+
+	sv := reflect.ValueOf(src)
+
+	if sv.Kind() != reflect.Ptr || sv.IsNil() {
+		return fmt.Errorf("Source is not a pointer.")
+	}
+
+	// Setting to zero before setting it again.
+	dv.Elem().Set(reflect.Zero(dv.Elem().Type()))
+
+	p, err := pick(src, false, route...)
 
 	if err != nil {
-		t.Errorf("ER: %v\n", err.Error())
+		return err
 	}
 
-	Get(&m, &i, "path", "to", "variable")
-
-	if i != 42 {
-		t.Errorf("Test failed.")
+	if p.IsValid() == false {
+		return fmt.Errorf("Could not find route.")
 	}
 
+	if dv.Elem().Type() != p.Type() {
+		// Trying conversion
+		if p.CanInterface() == true {
+			var t interface{}
+			t, err = to.Convert(p.Interface(), dv.Elem().Kind())
+			if err == nil {
+				tv := reflect.ValueOf(t)
+				if dv.Elem().Type() == tv.Type() {
+					p = &tv
+				}
+			}
+		}
+	}
+
+	if dv.Elem().Type() == p.Type() || dv.Elem().Kind() == reflect.Interface {
+		dv.Elem().Set(*p)
+	} else {
+		return fmt.Errorf("Could not assign %s to %s.", p.Type(), dv.Elem().Type())
+	}
+
+	return nil
 }
 
-func TestSetSimpleMap(t *testing.T) {
-
-	var m = map[string]int{
-		"key": 2,
+/*
+	Makes a path to the given route, if the route already exists it overwrites it
+	with a zero value.
+*/
+func Dig(src interface{}, route ...interface{}) error {
+	v, err := pick(src, true, route...)
+	if v.IsValid() == false {
+		return fmt.Errorf("Could not reach node.")
 	}
-
-	var i int
-
-	err := Set(&m, 42, "key")
-
-	if err != nil {
-		t.Errorf("ER: %v\n", err.Error())
-	}
-
-	Get(&m, &i, "key")
-
-	if i != 42 {
-		t.Errorf("Test failed.")
-	}
-
-	err = Set(&m, 43, "does", "not-exists")
-
-	if err == nil {
-		t.Errorf("Expecting an error.")
-	}
-
-	err = Set(&m, 44, "new-key")
-
-	if err != nil {
-		t.Errorf("Test failed.")
-	}
-
-	Get(&m, &i, "new-key")
-
-	if i != 44 {
-		t.Errorf("Test failed.")
-	}
-
-	err = Set(&m, 44)
-
-	if err == nil {
-		t.Errorf("Expecting an error.")
-	}
-
-}
-
-func TestDig(t *testing.T) {
-	var i int
-
-	m := map[string]interface{}{}
-
-	Dig(&m, "foo", "bar", "baz")
-	Set(&m, 42, "foo", "bar", "baz")
-	Get(&m, &i, "foo", "bar", "baz")
-
-	if i != 42 {
-		t.Errorf("Test failed.")
-	}
-
+	return err
 }
