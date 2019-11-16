@@ -1,17 +1,17 @@
-# gosexy/dig
+# dig
 
-This package provides sugar methods for traversing Go maps.
+Package `dig` provides tools for traversing Go maps.
 
-`gosexy/dig` basically turns this long statement:
+`dig` turns this:
 
 ```go
-foo := myMap["a"].(map[string]interface{})["b"].(map[string]interface{})["c"].(uint64)
+foo = myMap["a"].(map[string]interface{})["b"].(map[string]interface{})["c"].(uint64)
 ```
 
-Into this short and easier-to-understand one:
+into this:
 
 ```go
-foo := dig.Uint64(myMap, "a", "b", "c")
+foo = dig.Uint64(myMap, "a", "b", "c")
 ```
 
 Useful when you depend on external services, such as web-APIs, and you don't
@@ -21,13 +21,13 @@ by sudden changes on the expected JSON.
 ## Installation
 
 ```
-go get -u menteslibres.net/gosexy/dig
+go get -u github.com/xiam/dig
 ```
 
 ## Usage
 
-Usage is really simple, start with a `map[string]interface{}` and define which
-route to follow, take this `testMap` example:
+Start with a `map[string]interface{}` and define which path to follow, take
+this `testMap` example:
 
 ```go
 testMap := map[string]interface{}{
@@ -48,10 +48,10 @@ testMap := map[string]interface{}{
 }
 ```
 
-Suppose you want to get the value of the element with key "col.4". You'll need
-a route, the route of a node is defined as the array of map keys needed to be
-traversed in order to get to the node, in the above example the route would
-be: second > second.2 > col.4, in that specific order.
+suppose you want to get the value of the element with key "col.4". You'll need
+a path, the path of a node is defined as the array of map keys that you need to
+traverse in order to get to that node, in the above example the path would be:
+`second` > `second.2` > `col.4`, in that specific order.
 
 Now suppose you expect "col.4" to be a string, then you'd use `dig.String()` to
 get the value.
@@ -110,11 +110,11 @@ methods.
 
 ## Documentation
 
-See the [online docs][1] and the [project page][2].
+See the [online docs][1].
 
 ## License
 
->  Copyright (c) 2013 José Carlos Nieto, https://menteslibres.net/xiam
+>  Copyright (c) 2013-today José Nieto, https://xiam.dev
 >
 >  Permission is hereby granted, free of charge, to any person obtaining
 >  a copy of this software and associated documentation files (the
@@ -135,5 +135,4 @@ See the [online docs][1] and the [project page][2].
 >  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 >  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-[1]: http://godoc.org/menteslibres.net/gosexy/dig
-[2]: https://menteslibres.net/gosexy/dig
+[1]: http://godoc.org/github.com/xiam/dig
