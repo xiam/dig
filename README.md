@@ -1,8 +1,6 @@
 # dig
 
-Package `dig` provides tools for traversing Go maps.
-
-`dig` turns this:
+Package `dig` provides tools for traversing Go maps. `dig` turns this:
 
 ```go
 foo = myMap["a"].(map[string]interface{})["b"].(map[string]interface{})["c"].(uint64)

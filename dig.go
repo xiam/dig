@@ -19,7 +19,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// Package dig is a tool for traversing slices or maps with interface values
 package dig
 
 import (
@@ -103,6 +102,7 @@ func String(src interface{}, path ...interface{}) string {
 // given value.
 func Set(src interface{}, val interface{}, path ...interface{}) error {
 	l := len(path)
+
 	if l < 1 {
 		return fmt.Errorf("missing path")
 	}
@@ -116,8 +116,8 @@ func Set(src interface{}, val interface{}, path ...interface{}) error {
 		return err
 	}
 
-	if p.IsValid() == false {
-		return fmt.Errorf("path does not exists")
+	if !p.IsValid() {
+		return fmt.Errorf("the given path does not exists")
 	}
 
 	p.SetMapIndex(reflect.ValueOf(last[0]), reflect.ValueOf(val))
@@ -154,23 +154,11 @@ func Get(src interface{}, dst interface{}, path ...interface{}) error {
 		return err
 	}
 
-	if p.IsValid() == false {
-		return fmt.Errorf("could not find path")
+	if !p.IsValid() {
+		return fmt.Errorf("could not find the path: %#v", path)
 	}
 
-	if dv.Elem().Type() != p.Type() {
-		// Trying conversion
-		if p.CanInterface() == true {
-			var t interface{}
-			t, err = to.Convert(p.Interface(), dv.Elem().Kind())
-			if err == nil {
-				tv := reflect.ValueOf(t)
-				if dv.Elem().Type() == tv.Type() {
-					p = &tv
-				}
-			}
-		}
-	}
+	p = convert(dv, p)
 
 	if dv.Elem().Type() == p.Type() || dv.Elem().Kind() == reflect.Interface {
 		dv.Elem().Set(*p)
@@ -181,18 +169,34 @@ func Get(src interface{}, dst interface{}, path ...interface{}) error {
 	return nil
 }
 
+func convert(dv reflect.Value, p *reflect.Value) *reflect.Value {
+	if dv.Elem().Type() != p.Type() {
+		// Trying conversion
+		if p.CanInterface() {
+			t, err := to.Convert(p.Interface(), dv.Elem().Kind())
+			if err == nil {
+				tv := reflect.ValueOf(t)
+				if dv.Elem().Type() == tv.Type() {
+					p = &tv
+				}
+			}
+		}
+	}
+	return p
+}
+
 // Dig creates a route to the given path. If the path already exists it
 // overwrites it with a zero value.
 func Dig(src interface{}, path ...interface{}) error {
 	v, err := pick(src, true, path...)
-	if v.IsValid() == false {
+	if !v.IsValid() {
 		return fmt.Errorf("could not reach node")
 	}
 	return err
 }
 
 func pick(src interface{}, dig bool, path ...interface{}) (*reflect.Value, error) {
-	var err error = nil
+	var err error
 
 	v := reflect.ValueOf(src)
 
@@ -204,33 +208,46 @@ func pick(src interface{}, dig bool, path ...interface{}) (*reflect.Value, error
 
 	for _, key := range path {
 		u := v
-		switch v.Kind() {
+		switch kind := v.Kind(); kind {
 		case reflect.Slice:
-			switch i := key.(type) {
-			case int:
-				if i < v.Len() {
-					v = v.Index(i)
-				} else {
-					return nil, fmt.Errorf("undefined index: %d", i)
-				}
+			v, err = checkSlice(key, v)
+			if err != nil {
+				return &v, err
 			}
 		case reflect.Map:
-			vkey := reflect.ValueOf(key)
-			v = v.MapIndex(vkey)
-			if dig == true && v.IsValid() == false {
-				u.SetMapIndex(vkey, reflect.MakeMap(u.Type()))
-				v = u.MapIndex(vkey)
-			}
-			if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-				v = v.Elem()
-			}
+			v = checkMap(key, v, u, dig)
 		}
-		if v.IsValid() == true {
-			if v.CanInterface() == true {
+		if v.IsValid() {
+			if v.CanInterface() {
 				v = reflect.ValueOf(v.Interface())
 			}
 		}
 	}
 
 	return &v, err
+}
+
+func checkSlice(key interface{}, v reflect.Value) (reflect.Value, error) {
+	switch i := key.(type) {
+	case int:
+		if i < v.Len() {
+			v = v.Index(i)
+		} else {
+			return v, fmt.Errorf("undefined index: %d", i)
+		}
+	}
+	return v, nil
+}
+
+func checkMap(key interface{}, v reflect.Value, u reflect.Value, dig bool) reflect.Value {
+	vkey := reflect.ValueOf(key)
+	v = v.MapIndex(vkey)
+	if dig && !v.IsValid() {
+		u.SetMapIndex(vkey, reflect.MakeMap(u.Type()))
+		v = u.MapIndex(vkey)
+	}
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+	return v
 }
